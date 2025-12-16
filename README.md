@@ -98,8 +98,26 @@ git clone https://github.com/Nathanheim/Project_Datascience-.git
 cd Uber_fare_prediction-main
 ```
 
-### 2. Install Dependencies
+### 2. Create a Virtual Environment (Recommended)
 
+It's recommended to use a virtual environment to avoid conflicts with other Python projects.
+
+**Using venv (built-in):**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # Mac/Linux
+# .venv\Scripts\activate   # Windows
+pip install -r requirements.txt
+```
+
+**Using uv (modern/fast):**
+```bash
+uv venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+**Note:** If you skip the virtual environment, you can install directly:
 ```bash
 pip install -r requirements.txt
 ```
