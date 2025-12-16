@@ -1,176 +1,256 @@
 # 🚖 Uber Fare Prediction Project
 
-This repository contains two main components:
-
-1. **Uber Fare Prediction Model** – A complete data analysis and machine learning pipeline for predicting Uber ride fares.
-2. **Uber Fare Prediction GUI Application** – A simple Tkinter-based user interface that allows users to input ride details and get fare predictions using the trained machine-learning model.
+A complete machine learning pipeline for predicting Uber ride fares, with a modern Streamlit web application interface.
 
 ---
 
-# 📌 1. Uber Fare Prediction – Model Notebook
+## 📋 Table of Contents
 
-This notebook includes:
-
-### ✅ **Data Cleaning & Preprocessing**
-- Removing missing values  
-- Handling incorrect or unrealistic values  
-- Feature engineering (distance, time features, etc.)
-
-### ✅ **Exploratory Data Analysis (EDA)**
-- Distribution plots  
-- Outlier detection  
-- Correlation heatmaps  
-- Feature importance insights  
-
-### ✅ **Baseline Model: Fixed-Effects Panel Regression**
-As requested by the client, a classical econometric model (Fixed Effects Panel Regression) is included for benchmarking.
-
-### ✅ **Machine Learning Models**
-- Decision Tree Regressor  
-- Random Forest Regressor  
-- Gradient Boosting Regressor  
-- Hyperparameter tuning using RandomizedSearchCV  
-- Final best model saved as `.pkl`
-
-### ✅ **Model Comparison**
-A formal comparison between:
-- Fixed-Effects Regression  
-- Decision Tree  
-- Random Forest  
-- Gradient Boosting  
-
-Using:
-- R² Score  
-- Mean Absolute Error (MAE)  
-- Root Mean Squared Error (RMSE)  
-
-**Final Best Model:**  
-`RandomForestRegressor` with:
-- R² ≈ **0.82**
-- MAE ≈ **1.95**
-- RMSE ≈ **3.99**
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Model Performance](#model-performance)
+- [Technologies Used](#technologies-used)
+- [Author](#author)
 
 ---
 
-# 📌 2. Uber Fare Prediction – Tkinter GUI App
+## 🎯 Overview
 
-A simple, user-friendly GUI that loads the trained Random Forest model (`random_forest_model.pkl`) and predicts fares.
+This project implements a comprehensive machine learning pipeline to predict Uber ride fares based on:
+- Pickup and dropoff locations (GPS coordinates)
+- Trip distance
+- Passenger count
+- Date and time features
+- Temporal patterns (hour, day, month, day of week)
 
-### Features:
-- Clean graphical interface  
-- Background image (`uber.jpg`)  
-- User input fields:
-  - Pickup/Dropoff Latitude  
-  - Passenger Count  
-  - Pickup Year  
-  - Pickup Month  
-  - Pickup Day  
-  - Pickup Hour  
-  - Pickup Day of Week  
-  - Distance  
-
-### Input Validation:
-- Passenger Count → 1 to 6  
-- Year → 2025 to 2030  
-- Month → 1 to 12  
-- Day → 1 to 30  
-- Hour → 1 to 24  
-- Day of Week → 1 to 7  
-- Distance → must be > 1  
-
-### Prediction:
-Shows a popup message with the predicted fare:
-
-> **Predicted Fare Amount: $X.XX**
-
-### GUI Preview Screenshot:
-
-
-
-![Uber GUI Screenshot](images/test.jpg)
-
+The project includes:
+1. **Complete ML Pipeline** – Data preprocessing, feature engineering, model training, and evaluation
+2. **Streamlit Web Application** – Interactive interface for making fare predictions
+3. **Multiple ML Models** – Comparison of various algorithms including Random Forest, Gradient Boosting, and more
 
 ---
 
-# 🚀 How to Run the Project
+## 📁 Project Structure
 
-### **1. Clone the Repository**
+```
+Uber_fare_prediction-main/
+├── Source_code/
+│   ├── main.py                  # Main pipeline orchestrator
+│   ├── data_preprocessing.py    # Data loading and preprocessing
+│   ├── modeling.py              # ML models and feature improvements
+│   ├── tuning_and_saving.py    # Hyperparameter tuning and model persistence
+│   ├── visualization_utils.py   # Plotting functions
+│   ├── streamlit_app.py         # Streamlit web application
+│   └── uber_random_forest_model.pkl  # Trained model (if generated)
+├── dataset/
+│   └── uber.csv                 # Training data (200,000+ records)
+├── results/                     # Visualization outputs
+├── requirements.txt             # Python dependencies
+├── README.md                    # This file
+└── AMELIORATIONS_SUPPLEMENTAIRES.md  # Additional improvement suggestions
+```
+
+---
+
+## ✨ Features
+
+### Data Preprocessing
+- ✅ Missing value handling
+- ✅ Outlier removal (distance ≤ 60 km, fare < $100)
+- ✅ Feature engineering:
+  - Haversine distance calculation
+  - Temporal features (year, month, day, hour, day of week)
+  - Cyclical features for temporal patterns (sine/cosine encoding)
+  - Traffic-related features (rush hours, weekends, night time)
+  - Interaction features (distance × passengers, distance²)
+
+### Machine Learning Models
+- ✅ Linear Regression
+- ✅ Ridge & Lasso Regression
+- ✅ Decision Tree
+- ✅ **Random Forest** (Best performing model)
+- ✅ Gradient Boosting
+- ✅ AdaBoost
+- ✅ K-Nearest Neighbors
+- ✅ Support Vector Regressor
+- ✅ PanelOLS (Fixed-Effects Panel Regression) - for benchmarking
+
+### Web Application (Streamlit)
+- ✅ Modern, interactive web interface
+- ✅ Two input modes:
+  - GPS coordinates (automatic distance calculation)
+  - Direct distance input
+- ✅ Real-time fare prediction
+- ✅ Input validation
+- ✅ Visualizations (gauges, charts)
+
+---
+
+## 🚀 Installation
+
+### 1. Clone the Repository
+
 ```bash
-git clone https://github.com/yourusername/uber-fare-prediction.git
-cd Uber_fare_prediction
-````
+git clone https://github.com/Nathanheim/Project_Datascience-.git
+cd Uber_fare_prediction-main
+```
 
-### **2. Install Dependencies**
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Recommended libraries:
+**Required packages:**
+- pandas
+- numpy
+- scikit-learn
+- matplotlib
+- seaborn
+- streamlit
+- plotly
+- joblib
+- statsmodels
+- linearmodels
 
-* pandas
-* numpy
-* scikit-learn
-* seaborn
-* matplotlib
-* linearmodels
-* tkinter
-* pillow
-* joblib
-
-
-### **3. Run the GUI Application**
-
-Steps:
-
-- Make sure the following files are in the same folder:
-
-- app.py (your Tkinter code)
-
-- random_forest_model.pkl
-
-- uber.jpg (background image)
-
-Open Command Prompt (CMD) inside the folder.
 ---
-Run the app:
+
+## 💻 Usage
+
+### Step 1: Train the Model
+
+First, train and save the machine learning model:
+
+```bash
+cd Source_code
+python3 main.py
 ```
-python app.py
+
+This will:
+- Load and preprocess the dataset
+- Train multiple ML models
+- Perform hyperparameter tuning on Random Forest
+- Save the best model as `uber_random_forest_model.pkl`
+
+**Note:** The training process may take 15-20 minutes, especially for hyperparameter tuning.
+
+### Step 2: Launch the Streamlit Application
+
+Once the model is trained, launch the web application:
+
+```bash
+cd Source_code
+streamlit run streamlit_app.py
 ```
-# 🧠 Technologies Used
 
-* Python
-* Scikit-Learn
-* pandas
-* numpy
-* seaborn
-* matplotlib
-* linearmodels (Fixed-Effects Regression)
-* tkinter (GUI)
-* pillow (Image handling)
-* joblib (Model saving)
+The application will open in your default web browser (typically at `http://localhost:8501`).
 
----
+### Using the Application
 
-# 📊 Key Results
+1. **Choose input mode:**
+   - **GPS Coordinates**: Enter pickup and dropoff coordinates (distance calculated automatically)
+   - **Direct Distance**: Enter distance directly in km
 
-| Model                    | R²       | MAE      | RMSE     |
-| ------------------------ | -------- | -------- | -------- |
-| **Random Forest (best)** | **0.82** | **1.95** | **3.99** |
-| Gradient Boosting        | 0.80     | 2.07     | 4.20     |
-| Decision Tree            | 0.61     | 2.85     | 5.88     |
-| Fixed-Effects Regression | Lower    | Higher   | Higher   |
+2. **Fill in trip details:**
+   - Number of passengers (1-9)
+   - Date and time (year, month, day, hour)
 
-# **Conclusion:**
-➡️ Machine-Learning models significantly outperform the classical Fixed-Effects baseline.
-
-➡️ Random Forest provides the best predictive accuracy.
+3. **Click "Prédire le Tarif"** to get the fare prediction
 
 ---
 
-# 🙌 Author
+## 📊 Model Performance
+
+### Best Model: Random Forest Regressor
+
+| Metric | Value |
+|--------|-------|
+| **R² Score** | **0.82** |
+| **MAE** | **1.95** |
+| **RMSE** | **3.99** |
+
+### Model Comparison
+
+| Model | R² Score | MAE | RMSE |
+|-------|----------|-----|------|
+| **Random Forest** (best) | **0.82** | **1.95** | **3.99** |
+| Gradient Boosting | 0.80 | 2.07 | 4.20 |
+| Decision Tree | 0.61 | 2.85 | 5.88 |
+| Linear Regression | ~0.70 | ~2.50 | ~4.50 |
+
+**Conclusion:**
+- Machine Learning models significantly outperform classical econometric models
+- Random Forest provides the best predictive accuracy with R² ≈ 0.82
+- The model achieves low error rates (MAE < $2)
+
+---
+
+## 🧠 Technologies Used
+
+- **Python 3** – Main programming language
+- **Scikit-Learn** – Machine learning algorithms and tools
+- **pandas & numpy** – Data manipulation and analysis
+- **Streamlit** – Web application framework
+- **Plotly** – Interactive visualizations
+- **matplotlib & seaborn** – Static visualizations
+- **linearmodels** – Fixed-Effects Panel Regression
+- **joblib** – Model serialization
+- **statsmodels** – Statistical modeling
+
+---
+
+## 🔧 Code Architecture
+
+The project follows a modular architecture:
+
+- **`data_preprocessing.py`** – Handles data loading, cleaning, and feature engineering
+- **`modeling.py`** – Defines ML models and feature improvement functions
+- **`tuning_and_saving.py`** – Hyperparameter tuning and model persistence
+- **`visualization_utils.py`** – Plotting and visualization functions
+- **`main.py`** – Orchestrates the entire pipeline
+- **`streamlit_app.py`** – Web application interface
+
+---
+
+## 📈 Future Improvements
+
+See `AMELIORATIONS_SUPPLEMENTAIRES.md` for detailed suggestions on:
+- Code quality improvements
+- Additional feature engineering
+- Architecture enhancements
+- Testing and validation
+
+---
+
+## ⚠️ Notes
+
+- The dataset (`uber.csv`) is not included in the repository due to size. Ensure you have the dataset in the `dataset/` folder.
+- The trained model files (`.pkl`) are excluded from Git (see `.gitignore`) as they exceed GitHub's file size limits.
+- To use the application, you must first train the model by running `main.py`.
+
+---
+
+## 🙌 Author
 
 **Nathan Heim**
 
+GitHub: [@Nathanheim](https://github.com/Nathanheim)
+
 ---
 
+## 📄 License
+
+This project is for educational purposes.
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+---
+
+**Last Updated:** January 2025

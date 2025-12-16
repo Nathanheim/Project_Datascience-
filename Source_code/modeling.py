@@ -45,27 +45,37 @@ def build_panel_ols(df: pd.DataFrame) -> Dict[str, Any]:
     }
 
 
-def train_sklearn_models(X_train_scaled, X_test_scaled, y_train, y_test) -> pd.DataFrame:
+def train_sklearn_models(X_train_scaled, X_test_scaled, y_train, y_test):
     """
     Entraîne plusieurs modèles sklearn et retourne
-    un DataFrame avec R2, MAE, RMSE.
+    un DataFrame avec R2, MAE, RMSE ainsi que les modèles entraînés.
+    
+    Returns
+    -------
+    tuple: (results_df, trained_models)
+        - results_df: DataFrame avec les résultats (R2, MAE, RMSE)
+        - trained_models: Dictionnaire des modèles entraînés {name: model}
     """
+    from config import RANDOM_STATE, N_ESTIMATORS_RF
+    
     models = {
         "Linear Regression": LinearRegression(),
         "Ridge Regression": Ridge(),
         "Lasso Regression": Lasso(),
-        "Decision Tree": DecisionTreeRegressor(random_state=42),
-        "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42),
-        "Gradient Boosting": GradientBoostingRegressor(random_state=42),
-        "AdaBoost": AdaBoostRegressor(random_state=42),
+        "Decision Tree": DecisionTreeRegressor(random_state=RANDOM_STATE),
+        "Random Forest": RandomForestRegressor(n_estimators=N_ESTIMATORS_RF, random_state=RANDOM_STATE),
+        "Gradient Boosting": GradientBoostingRegressor(random_state=RANDOM_STATE),
+        "AdaBoost": AdaBoostRegressor(random_state=RANDOM_STATE),
         "K-Nearest Neighbors": KNeighborsRegressor(),
         "Support Vector Regressor": SVR(),
     }
 
     results = []
+    trained_models = {}  # Stocker les modèles entraînés
 
     for name, model in models.items():
         model.fit(X_train_scaled, y_train)
+        trained_models[name] = model  # Sauvegarder le modèle entraîné
         y_pred = model.predict(X_test_scaled)
 
         r2 = r2_score(y_test, y_pred)
@@ -77,7 +87,7 @@ def train_sklearn_models(X_train_scaled, X_test_scaled, y_train, y_test) -> pd.D
     results_df = pd.DataFrame(results, columns=["Model", "R2_Score", "MAE", "RMSE"])
     results_df = results_df.sort_values(by="R2_Score", ascending=False).reset_index(drop=True)
 
-    return results_df
+    return results_df, trained_models
 
 
 # ============================================================================

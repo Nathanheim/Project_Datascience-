@@ -16,8 +16,14 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import joblib
 
 
-def tune_random_forest(X_train, y_train, random_state: int = 42) -> RandomForestRegressor:
+def tune_random_forest(X_train, y_train, random_state: int = None) -> RandomForestRegressor:
     """Effectue un RandomizedSearchCV sur RandomForest."""
+    from config import RANDOM_STATE, N_ITER_RANDOM_SEARCH, N_SPLITS_CV, N_JOBS, VERBOSE
+    
+    # Utiliser la valeur du config si random_state n'est pas fourni
+    if random_state is None:
+        random_state = RANDOM_STATE
+    
     param_grid = {
         "n_estimators": [200, 300, 400],
         "max_depth": [20, 30, 40],
@@ -25,17 +31,16 @@ def tune_random_forest(X_train, y_train, random_state: int = 42) -> RandomForest
         "min_samples_leaf": [2, 4],
     }
     rf = RandomForestRegressor(random_state=random_state)
-    # Optimisation : réduit de 5 à 3 folds et de 20 à 10 itérations pour aller 3x plus vite
-    cv = KFold(n_splits=3, shuffle=True, random_state=random_state)
+    cv = KFold(n_splits=N_SPLITS_CV, shuffle=True, random_state=random_state)
     rf_search = RandomizedSearchCV(
         estimator=rf,
         param_distributions=param_grid,
-        n_iter=10,  # Réduit de 20 à 10 (au lieu de 100 entraînements, maintenant 30)
+        n_iter=N_ITER_RANDOM_SEARCH,
         cv=cv,
-        n_jobs=2,  # Réduit à 2 pour éviter les timeouts sur Mac
+        n_jobs=N_JOBS,
         random_state=random_state,
         scoring="r2",
-        verbose=1,
+        verbose=VERBOSE,
     )
     rf_search.fit(X_train, y_train)
 
