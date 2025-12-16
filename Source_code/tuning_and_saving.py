@@ -67,8 +67,20 @@ def evaluate_model(model, X_test, y_test) -> Dict[str, float]:
     return {"r2": r2, "mae": mae, "rmse": rmse}
 
 
-def save_model(model, path: str = "random_forest_model.pkl"):
-    """Sauvegarde le modèle avec joblib."""
+def save_model(model, path: str = None):
+    """
+    Sauvegarde le modèle avec joblib.
+    
+    Parameters
+    ----------
+    model : object
+        Modèle à sauvegarder
+    path : str, optional
+        Chemin de sauvegarde. Si None, utilise le chemin par défaut depuis config.
+    """
+    if path is None:
+        from config import MODEL_PATH
+        path = str(MODEL_PATH)
     joblib.dump(model, path)
     print(f"Modèle sauvegardé avec succès dans {path}")
 
