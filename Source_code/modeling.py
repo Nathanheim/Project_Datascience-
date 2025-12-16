@@ -4,6 +4,7 @@ Module de modèles pour la prédiction du tarif Uber.
 Ce module contient les modèles :
 - PanelOLS (effets fixes)
 - Plusieurs modèles sklearn (arbres, forêts, boosting, etc.)
+- Fonctions d'amélioration de features (cycliques, trafic, interactions, etc.)
 """
 
 import numpy as np
@@ -16,6 +17,7 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, A
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
+from sklearn.preprocessing import RobustScaler
 
 from linearmodels.panel import PanelOLS
 import statsmodels.api as sm
@@ -78,7 +80,138 @@ def train_sklearn_models(X_train_scaled, X_test_scaled, y_train, y_test) -> pd.D
     return results_df
 
 
+# ============================================================================
+# Fonctions d'amélioration de features
+# ============================================================================
+
+
+def add_cyclical_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ajoute des features cycliques pour les variables temporelles.
+    Améliore la modélisation des patterns temporels (ex: minuit proche de 23h).
+    """
+    df = df.copy()
+    
+    # Heure cyclique (24h)
+    df['hour_sin'] = np.sin(2 * np.pi * df['pickup_hour'] / 24)
+    df['hour_cos'] = np.cos(2 * np.pi * df['pickup_hour'] / 24)
+    
+    # Jour de semaine cyclique (7 jours)
+    df['dayofweek_sin'] = np.sin(2 * np.pi * df['pickup_dayofweek'] / 7)
+    df['dayofweek_cos'] = np.cos(2 * np.pi * df['pickup_dayofweek'] / 7)
+    
+    # Mois cyclique (12 mois)
+    df['month_sin'] = np.sin(2 * np.pi * df['pickup_month'] / 12)
+    df['month_cos'] = np.cos(2 * np.pi * df['pickup_month'] / 12)
+    
+    return df
+
+
+def add_traffic_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ajoute des features liées au trafic et aux habitudes.
+    """
+    df = df.copy()
+    
+    # Heures de pointe (rush hours)
+    df['is_rush_hour'] = ((df['pickup_hour'] >= 7) & (df['pickup_hour'] <= 9)) | \
+                         ((df['pickup_hour'] >= 17) & (df['pickup_hour'] <= 19))
+    df['is_rush_hour'] = df['is_rush_hour'].astype(int)
+    
+    # Week-end
+    df['is_weekend'] = (df['pickup_dayofweek'] >= 5).astype(int)
+    
+    # Heures de nuit (0-5h)
+    df['is_night'] = ((df['pickup_hour'] >= 0) & (df['pickup_hour'] <= 5)).astype(int)
+    
+    return df
+
+
+def add_geographical_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ajoute des features géographiques avancées.
+    Nécessite que pickup_longitude et dropoff_longitude soient encore présents.
+    """
+    df = df.copy()
+    
+    # Distance Manhattan (distance en L, approximative)
+    # Utilise les latitudes/longitudes si disponibles
+    if 'pickup_longitude' in df.columns and 'dropoff_longitude' in df.columns:
+        # Approximation de la distance Manhattan
+        lat_diff = np.abs(df['dropoff_latitude'] - df['pickup_latitude'])
+        lon_diff = np.abs(df['dropoff_longitude'] - df['pickup_longitude'])
+        # Conversion approximative en km (1 degré ≈ 111 km)
+        df['manhattan_distance'] = (lat_diff * 111) + (lon_diff * 111 * np.cos(np.radians(df['pickup_latitude'])))
+    
+    return df
+
+
+def add_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ajoute des features d'interaction entre variables importantes.
+    """
+    df = df.copy()
+    
+    # Distance * Passagers (tarif peut être plus cher avec plus de passagers)
+    df['distance_passengers'] = df['Distance'] * df['passenger_count']
+    
+    # Distance au carré (relation non-linéaire possible)
+    df['distance_squared'] = df['Distance'] ** 2
+    
+    return df
+
+
+def add_time_based_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ajoute des features basées sur le temps.
+    """
+    df = df.copy()
+    
+    # Jour du mois (peut affecter les tarifs)
+    df['day_of_month'] = df['pickup_day']
+    
+    # Saison (si applicable)
+    df['season'] = df['pickup_month'].apply(lambda x: (x % 12) // 3 + 1)
+    
+    return df
+
+
+def improved_preprocessing_pipeline(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Pipeline amélioré qui ajoute toutes les nouvelles features.
+    """
+    df = df.copy()
+    
+    # Features cycliques
+    df = add_cyclical_features(df)
+    
+    # Features de trafic
+    df = add_traffic_features(df)
+    
+    # Features géographiques (si coordonnées disponibles)
+    df = add_geographical_features(df)
+    
+    # Features d'interaction
+    df = add_interaction_features(df)
+    
+    # Features temporelles
+    df = add_time_based_features(df)
+    
+    return df
+
+
+def use_robust_scaler(X_train, X_test):
+    """
+    Utilise RobustScaler au lieu de StandardScaler.
+    Plus robuste aux outliers.
+    """
+    scaler = RobustScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    return X_train_scaled, X_test_scaled, scaler
+
+
 if __name__ == "__main__":
-    print("Ce module définit les modèles, il est conçu pour être appelé depuis main.py.")
+    print("Ce module définit les modèles et les améliorations de features, il est conçu pour être appelé depuis main.py.")
 
 
