@@ -126,6 +126,14 @@ def full_preprocessing_pipeline(csv_path: str):
     retourne les objets prêts pour l'entraînement.
     Inclut les features avancées (cycliques, trafic, interactions).
     """
+    # Import depuis le même répertoire (Source_code/)
+    import sys
+    from pathlib import Path
+    # Ajouter le répertoire Source_code au path si nécessaire
+    source_code_dir = Path(__file__).parent
+    if str(source_code_dir) not in sys.path:
+        sys.path.insert(0, str(source_code_dir))
+    
     from modeling import (
         add_cyclical_features,
         add_traffic_features,
