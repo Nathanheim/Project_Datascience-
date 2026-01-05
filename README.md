@@ -38,8 +38,8 @@ The project includes:
 
 ```
 Uber_fare_prediction-main/
+├── main.py                      # Main pipeline orchestrator
 ├── Source_code/
-│   ├── main.py                  # Main pipeline orchestrator
 │   ├── data_preprocessing.py    # Data loading and preprocessing
 │   ├── modeling.py              # ML models and feature improvements
 │   ├── tuning_and_saving.py    # Hyperparameter tuning and model persistence
@@ -154,7 +154,6 @@ pip install -r requirements.txt
 First, train and save the machine learning model:
 
 ```bash
-cd Source_code
 python3 main.py
 ```
 

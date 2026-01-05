@@ -13,26 +13,26 @@ from pathlib import Path
 import joblib
 import sys
 
-from config import (
+from Source_code.config import (
     DATASET_PATH,
     MODEL_PATH,
     SCALER_PATH,
     ENABLE_VISUALIZATIONS,
     ENABLE_PANEL_OLS,
 )
-from data_preprocessing import full_preprocessing_pipeline
-from modeling import (
+from Source_code.data_preprocessing import full_preprocessing_pipeline
+from Source_code.modeling import (
     build_panel_ols,
     train_sklearn_models,
 )
-from visualization_utils import (
+from Source_code.visualization_utils import (
     plot_correlation_heatmap,
     plot_distance_vs_fare,
     plot_model_performance_bar,
     plot_residuals_best_model,
     plot_feature_importances,
 )
-from tuning_and_saving import tune_random_forest, evaluate_model, save_model
+from Source_code.tuning_and_saving import tune_random_forest, evaluate_model, save_model
 
 
 def main():
@@ -168,5 +168,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
