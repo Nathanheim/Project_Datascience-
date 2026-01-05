@@ -1,10 +1,10 @@
-# 🚖 Uber Fare Prediction Project
+# Uber Fare Prediction Project
 
 A complete machine learning pipeline for predicting Uber ride fares, with a modern Streamlit web application interface.
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Project Structure](#project-structure)
@@ -18,7 +18,7 @@ A complete machine learning pipeline for predicting Uber ride fares, with a mode
 
 ---
 
-## 🎯 Overview
+## Overview
 
 This project implements a comprehensive machine learning pipeline to predict Uber ride fares based on:
 - Pickup and dropoff locations (GPS coordinates)
@@ -53,55 +53,54 @@ Uber_fare_prediction-main/
 ├── results/                     # Visualization outputs
 ├── requirements.txt             # Python dependencies
 ├── README.md                    # This file
-└── AMELIORATIONS_SUPPLEMENTAIRES.md  # Additional improvement suggestions
 ```
 
 ---
 
-## ✨ Features
+## Features
 
 ### Data Preprocessing
-- ✅ Missing value handling (removal of rows with missing values)
-- ✅ Outlier removal (distance ≤ 60 km, fare < $100, passenger count between 1 and 9)
-- ✅ Feature engineering:
+- Missing value handling (removal of rows with missing values)
+- Outlier removal (distance ≤ 60 km, fare < $100, passenger count between 1 and 9)
+- Feature engineering:
   - Haversine distance calculation (geodesic distance between two GPS points)
   - Temporal features (year, month, day, hour, day of week)
   - Cyclical features for temporal patterns (sine/cosine encoding)
   - Traffic-related features (rush hours, weekends, night time)
   - Interaction features (distance × passengers, distance²)
-- ✅ Feature scaling with StandardScaler
-- ✅ Train/test split (80/20)
+- Feature scaling with StandardScaler
+- Train/test split (80/20)
 
 ### Machine Learning Models
-- ✅ Linear Regression
-- ✅ Ridge & Lasso Regression
-- ✅ Decision Tree
-- ✅ **Random Forest** (Best performing model)
-- ✅ Gradient Boosting
-- ✅ AdaBoost
-- ✅ K-Nearest Neighbors
-- ✅ Support Vector Regressor
-- ✅ PanelOLS (Fixed-Effects Panel Regression) - for benchmarking
+- Linear Regression
+- Ridge & Lasso Regression
+- Decision Tree
+- **Random Forest** (Best performing model)
+- Gradient Boosting
+- AdaBoost
+- K-Nearest Neighbors
+- Support Vector Regressor
+- PanelOLS (Fixed-Effects Panel Regression) - for benchmarking
 
 ### Hyperparameter Optimization
-- ✅ RandomizedSearchCV with 3-fold cross-validation
-- ✅ Optimization of key Random Forest parameters:
+- RandomizedSearchCV with 3-fold cross-validation
+- Optimization of key Random Forest parameters:
   - Number of trees (n_estimators)
   - Maximum depth (max_depth)
   - Minimum sample thresholds (min_samples_split, min_samples_leaf)
 
 ### Web Application (Streamlit)
-- ✅ Modern, interactive web interface
-- ✅ Two input modes:
+- Modern, interactive web interface
+- Two input modes:
   - GPS coordinates (automatic distance calculation)
   - Direct distance input
-- ✅ Real-time fare prediction
-- ✅ Input validation
-- ✅ Visualizations (gauges, charts)
+- Real-time fare prediction
+- Input validation
+- Visualizations (gauges, charts)
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### 1. Clone the Repository
 
@@ -148,7 +147,7 @@ pip install -r requirements.txt
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### Step 1: Train the Model
 
@@ -166,7 +165,7 @@ This will:
 - Save the best model as `uber_random_forest_model.pkl`
 - Save the scaler as `scaler.pkl`
 
-**Note:** The training process may take 15-20 minutes, especially for hyperparameter tuning.
+**Note:** The training process takes approximately 30 minutes to execute, especially due to hyperparameter tuning.
 
 ### Step 2: Launch the Streamlit Application
 
@@ -219,7 +218,7 @@ The application will open in your default web browser (typically at `http://loca
 
 ---
 
-## 🧠 Technologies Used
+## Technologies Used
 
 - **Python 3** – Main programming language
 - **Scikit-Learn** – Machine learning algorithms and tools
@@ -233,7 +232,7 @@ The application will open in your default web browser (typically at `http://loca
 
 ---
 
-## 🔧 Code Architecture
+## Code Architecture
 
 The project follows a modular architecture:
 
@@ -255,21 +254,11 @@ The project follows a modular architecture:
 6. **Optimization**: Tune hyperparameters of the best model (Random Forest)
 7. **Saving**: Persist model and scaler with joblib
 
----
 
-## 📈 Future Improvements
 
-See `AMELIORATIONS_SUPPLEMENTAIRES.md` for detailed suggestions on:
-- Code quality improvements
-- Additional feature engineering
-- Architecture enhancements
-- Testing and validation
 
----
+## Important Notes
 
-## ⚠️ Important Notes
-
-- The dataset (`uber.csv`) is not included in the repository due to size. Ensure you have the dataset in the `dataset/` folder.
 - The trained model files (`.pkl`) are excluded from Git (see `.gitignore`) as they exceed GitHub's file size limits.
 - To use the application, you must first train the model by running `main.py`.
 - The model uses 3-fold cross-validation for hyperparameter optimization (configurable in `config.py`).
@@ -277,24 +266,9 @@ See `AMELIORATIONS_SUPPLEMENTAIRES.md` for detailed suggestions on:
 
 ---
 
-## 🙌 Author
 
-**Nathan Heim**
+**Nathan Heimendinger-Dreyfus**
 
 GitHub: [@Nathanheim](https://github.com/Nathanheim)
 
----
 
-## 📄 License
-
-This project is for educational purposes.
-
----
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-
----
-
-**Last Updated:** January 2025
