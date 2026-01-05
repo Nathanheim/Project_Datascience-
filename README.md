@@ -13,6 +13,7 @@ A complete machine learning pipeline for predicting Uber ride fares, with a mode
 - [Usage](#usage)
 - [Model Performance](#model-performance)
 - [Technologies Used](#technologies-used)
+- [Code Architecture](#code-architecture)
 - [Author](#author)
 
 ---
@@ -42,9 +43,11 @@ Uber_fare_prediction-main/
 │   ├── data_preprocessing.py    # Data loading and preprocessing
 │   ├── modeling.py              # ML models and feature improvements
 │   ├── tuning_and_saving.py    # Hyperparameter tuning and model persistence
-│   ├── visualization_utils.py   # Plotting functions
+│   ├── visualization_utils.py  # Plotting functions
 │   ├── streamlit_app.py         # Streamlit web application
-│   └── uber_random_forest_model.pkl  # Trained model (if generated)
+│   ├── config.py                # Centralized configuration
+│   ├── uber_random_forest_model.pkl  # Trained model (if generated)
+│   └── scaler.pkl               # Saved scaler (if generated)
 ├── dataset/
 │   └── uber.csv                 # Training data (200,000+ records)
 ├── results/                     # Visualization outputs
@@ -58,14 +61,16 @@ Uber_fare_prediction-main/
 ## ✨ Features
 
 ### Data Preprocessing
-- ✅ Missing value handling
-- ✅ Outlier removal (distance ≤ 60 km, fare < $100)
+- ✅ Missing value handling (removal of rows with missing values)
+- ✅ Outlier removal (distance ≤ 60 km, fare < $100, passenger count between 1 and 9)
 - ✅ Feature engineering:
-  - Haversine distance calculation
+  - Haversine distance calculation (geodesic distance between two GPS points)
   - Temporal features (year, month, day, hour, day of week)
   - Cyclical features for temporal patterns (sine/cosine encoding)
   - Traffic-related features (rush hours, weekends, night time)
   - Interaction features (distance × passengers, distance²)
+- ✅ Feature scaling with StandardScaler
+- ✅ Train/test split (80/20)
 
 ### Machine Learning Models
 - ✅ Linear Regression
@@ -77,6 +82,13 @@ Uber_fare_prediction-main/
 - ✅ K-Nearest Neighbors
 - ✅ Support Vector Regressor
 - ✅ PanelOLS (Fixed-Effects Panel Regression) - for benchmarking
+
+### Hyperparameter Optimization
+- ✅ RandomizedSearchCV with 3-fold cross-validation
+- ✅ Optimization of key Random Forest parameters:
+  - Number of trees (n_estimators)
+  - Maximum depth (max_depth)
+  - Minimum sample thresholds (min_samples_split, min_samples_leaf)
 
 ### Web Application (Streamlit)
 - ✅ Modern, interactive web interface
@@ -152,6 +164,7 @@ This will:
 - Train multiple ML models
 - Perform hyperparameter tuning on Random Forest
 - Save the best model as `uber_random_forest_model.pkl`
+- Save the scaler as `scaler.pkl`
 
 **Note:** The training process may take 15-20 minutes, especially for hyperparameter tuning.
 
@@ -224,12 +237,23 @@ The application will open in your default web browser (typically at `http://loca
 
 The project follows a modular architecture:
 
+- **`config.py`** – Centralized configuration (paths, parameters, hyperparameters)
 - **`data_preprocessing.py`** – Handles data loading, cleaning, and feature engineering
 - **`modeling.py`** – Defines ML models and feature improvement functions
 - **`tuning_and_saving.py`** – Hyperparameter tuning and model persistence
 - **`visualization_utils.py`** – Plotting and visualization functions
 - **`main.py`** – Orchestrates the entire pipeline
 - **`streamlit_app.py`** – Web application interface
+
+### Processing Pipeline
+
+1. **Data Loading**: Read CSV file
+2. **Cleaning**: Remove missing values and outliers
+3. **Feature Engineering**: Create temporal features and calculate Haversine distance
+4. **Preparation**: Separate features/target, train/test split, scaling
+5. **Training**: Compare multiple ML models
+6. **Optimization**: Tune hyperparameters of the best model (Random Forest)
+7. **Saving**: Persist model and scaler with joblib
 
 ---
 
@@ -243,11 +267,13 @@ See `AMELIORATIONS_SUPPLEMENTAIRES.md` for detailed suggestions on:
 
 ---
 
-## ⚠️ Notes
+## ⚠️ Important Notes
 
 - The dataset (`uber.csv`) is not included in the repository due to size. Ensure you have the dataset in the `dataset/` folder.
 - The trained model files (`.pkl`) are excluded from Git (see `.gitignore`) as they exceed GitHub's file size limits.
 - To use the application, you must first train the model by running `main.py`.
+- The model uses 3-fold cross-validation for hyperparameter optimization (configurable in `config.py`).
+- The model is saved with joblib (recommended method for scikit-learn).
 
 ---
 
