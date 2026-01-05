@@ -171,8 +171,17 @@ def validate_inputs(input_mode, pickup_lat, pickup_lon, dropoff_lat, dropoff_lon
 
 def make_prediction(model, input_mode, pickup_lat, pickup_lon, dropoff_lat, dropoff_lon,
                    distance_direct, passenger_count, year, month, day, hour, dayofweek):
-    """Effectue la prédiction du tarif."""
+    """Effectue la prédiction du tarif avec toutes les features avancées."""
     try:
+        import numpy as np
+        from modeling import (
+            add_cyclical_features,
+            add_traffic_features,
+            add_geographical_features,
+            add_interaction_features,
+            add_time_based_features,
+        )
+        
         # Récupération de la distance
         if input_mode == "coordinates":
             distance = calculate_distance_from_coords(
@@ -180,16 +189,22 @@ def make_prediction(model, input_mode, pickup_lat, pickup_lon, dropoff_lat, drop
                 float(dropoff_lat), float(dropoff_lon)
             )
             pickup_lat_val = float(pickup_lat)
+            pickup_lon_val = float(pickup_lon)
             dropoff_lat_val = float(dropoff_lat)
+            dropoff_lon_val = float(dropoff_lon)
         else:
             distance = float(distance_direct)
             pickup_lat_val = 40.7128  # Latitude par défaut (NYC)
+            pickup_lon_val = -74.0060  # Longitude par défaut (NYC)
             dropoff_lat_val = 40.7128
+            dropoff_lon_val = -74.0060
         
-        # Création du DataFrame d'entrée
+        # Création du DataFrame d'entrée avec les features de base
         input_data = pd.DataFrame({
             "pickup_latitude": [pickup_lat_val],
+            "pickup_longitude": [pickup_lon_val],
             "dropoff_latitude": [dropoff_lat_val],
+            "dropoff_longitude": [dropoff_lon_val],
             "passenger_count": [int(passenger_count)],
             "pickup_year": [int(year)],
             "pickup_month": [int(month)],
@@ -199,6 +214,18 @@ def make_prediction(model, input_mode, pickup_lat, pickup_lon, dropoff_lat, drop
             "Distance": [distance],
         })
         
+        # Ajout des features avancées (dans le même ordre que le pipeline)
+        input_data = add_cyclical_features(input_data)
+        input_data = add_traffic_features(input_data)
+        input_data = add_geographical_features(input_data)
+        input_data = add_interaction_features(input_data)
+        input_data = add_time_based_features(input_data)
+        
+        # Supprimer les colonnes de localisation (comme dans le pipeline)
+        cols_to_drop = ["pickup_longitude", "dropoff_longitude"]
+        existing = [c for c in cols_to_drop if c in input_data.columns]
+        input_data = input_data.drop(columns=existing)
+        
         # Prédiction (RandomForest n'utilise pas de scaler)
         fare_prediction = model.predict(input_data)[0]
         
@@ -206,6 +233,8 @@ def make_prediction(model, input_mode, pickup_lat, pickup_lon, dropoff_lat, drop
         
     except Exception as e:
         st.error(f"ERREUR : Erreur lors de la prédiction : {str(e)}")
+        import traceback
+        st.error(f"Détails : {traceback.format_exc()}")
         return None, None
 
 

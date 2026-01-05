@@ -124,26 +124,42 @@ def full_preprocessing_pipeline(csv_path: str):
     """
     Pipeline complet de prétraitement qui
     retourne les objets prêts pour l'entraînement.
+    Inclut les features avancées (cycliques, trafic, interactions).
     """
+    from modeling import (
+        add_cyclical_features,
+        add_traffic_features,
+        add_geographical_features,
+        add_interaction_features,
+        add_time_based_features,
+    )
+    
     # Chargement
     df_raw = load_raw_data(csv_path)
 
     # Nettoyage valeurs manquantes
     df = drop_missing_values(df_raw)
 
-    # Features temporelles
+    # Features temporelles de base
     df = add_datetime_features(df, datetime_col="pickup_datetime")
 
     # Suppression colonnes inutiles
     df = drop_unused_columns(df)
 
-    # Distance
+    # Distance (nécessaire avant les autres features)
     df = add_distance_feature(df)
 
-    # Outliers
+    # Outliers (avant d'ajouter les features avancées pour éviter de calculer sur des données aberrantes)
     df = remove_outliers(df)
 
-    # Colonnes de localisation
+    # Features avancées (avant de supprimer les coordonnées pour les features géographiques)
+    df = add_cyclical_features(df)
+    df = add_traffic_features(df)
+    df = add_geographical_features(df)  # Nécessite les coordonnées
+    df = add_interaction_features(df)
+    df = add_time_based_features(df)
+
+    # Colonnes de localisation (après avoir utilisé les coordonnées pour les features géographiques)
     df = drop_location_columns(df)
 
     # Features / Target
