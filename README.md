@@ -105,7 +105,7 @@ Uber_fare_prediction-main/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Nathanheim/Project_Datascience-.git
+git clone https://github.com/Nathanheim/Uber_fare_prediction.git
 cd Uber_fare_prediction-main
 ```
 
@@ -164,7 +164,7 @@ This will:
 - Save the best model as `uber_random_forest_model.pkl`
 - Save the scaler as `scaler.pkl`
 
-**Note:** The training process takes approximately 30 minutes to execute, especially due to hyperparameter tuning.
+**Note:** The training process takes approximately 1 hour to execute, especially due to hyperparameter tuning.
 
 ### Step 2: Launch the Streamlit Application
 
