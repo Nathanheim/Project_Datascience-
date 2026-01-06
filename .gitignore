@@ -1,4 +1,4 @@
-# Fichiers système et cache uniquement
+# System files and cache only
 __pycache__/
 *.py[cod]
 *$py.class
@@ -9,17 +9,14 @@ Thumbs.db
 *.swo
 *~
 
-# Environnements virtuels (optionnel - vous pouvez les supprimer si vous voulez)
+# Virtual environments 
 venv/
 env/
 ENV/
 .venv
 
-# Fichiers temporaires IDE (optionnel)
-.vscode/
-.idea/
 
-# Fichiers trop volumineux pour GitHub (>100 MB)
+# Files too large for GitHub (>100 MB)
 *.pkl
 *.joblib
 random_forest_model.pkl
