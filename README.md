@@ -69,7 +69,7 @@ Uber_fare_prediction-main/
   - Traffic-related features (rush hours, weekends, night time)
   - Interaction features (distance × passengers, distance²)
 - Feature scaling with StandardScaler
-- Train/test split (80/20)
+
 
 ### Machine Learning Models
 - Linear Regression
@@ -219,7 +219,7 @@ The application will open in your default web browser (typically at `http://loca
 
 ## Technologies Used
 
-- **Python 3** – Main programming language
+- **Python 3.9+** – Main programming language
 - **Scikit-Learn** – Machine learning algorithms and tools
 - **pandas & numpy** – Data manipulation and analysis
 - **Streamlit** – Web application framework
