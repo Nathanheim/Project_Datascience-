@@ -133,7 +133,8 @@ uv pip install -r requirements.txt
 pip install -r requirements.txt
 ```
 
-**Required packages:**
+**Required :**
+- python 3.9+
 - pandas
 - numpy
 - scikit-learn
