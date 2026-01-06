@@ -172,7 +172,7 @@ Once the model is trained, launch the web application:
 
 ```bash
 cd Source_code
-streamlit run streamlit_app.py
+python3 -m streamlit run streamlit_app.py
 ```
 
 The application will open in your default web browser (typically at `http://localhost:8501`).
