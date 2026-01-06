@@ -1,10 +1,10 @@
 """
-Module de tuning et sauvegarde du meilleur modèle RandomForest.
+Module for tuning and saving the best RandomForest model.
 
-Contient :
-- RandomizedSearchCV sur RandomForestRegressor
-- évaluation finale sur le test set
-- sauvegarde du modèle avec joblib
+Contains:
+- RandomizedSearchCV on RandomForestRegressor
+- final evaluation on test set
+- model saving with joblib
 """
 
 import numpy as np
@@ -17,10 +17,10 @@ import joblib
 
 
 def tune_random_forest(X_train, y_train, random_state: int = None) -> RandomForestRegressor:
-    """Effectue un RandomizedSearchCV sur RandomForest."""
+    """Perform RandomizedSearchCV on RandomForest."""
     from config import RANDOM_STATE, N_ITER_RANDOM_SEARCH, N_SPLITS_CV, N_JOBS, VERBOSE
     
-    # Utiliser la valeur du config si random_state n'est pas fourni
+    # Use config value if random_state is not provided
     if random_state is None:
         random_state = RANDOM_STATE
     
@@ -52,7 +52,7 @@ def tune_random_forest(X_train, y_train, random_state: int = None) -> RandomFore
 
 
 def evaluate_model(model, X_test, y_test) -> Dict[str, float]:
-    """Calcule R2, MAE, RMSE sur le test set."""
+    """Calculate R2, MAE, RMSE on test set."""
     y_pred = model.predict(X_test)
 
     r2 = r2_score(y_test, y_pred)
@@ -69,23 +69,22 @@ def evaluate_model(model, X_test, y_test) -> Dict[str, float]:
 
 def save_model(model, path: str = None):
     """
-    Sauvegarde le modèle avec joblib.
+    Save model with joblib.
     
     Parameters
     ----------
     model : object
-        Modèle à sauvegarder
+        Model to save
     path : str, optional
-        Chemin de sauvegarde. Si None, utilise le chemin par défaut depuis config.
+        Save path. If None, uses default path from config.
     """
     if path is None:
         from config import MODEL_PATH
         path = str(MODEL_PATH)
     joblib.dump(model, path)
-    print(f"Modèle sauvegardé avec succès dans {path}")
+    print(f"Model saved successfully in {path}")
 
 
 if __name__ == "__main__":
-    print("Ce module gère le tuning et la sauvegarde du modèle.")
-
+    print("This module handles tuning and saving the model.")
 

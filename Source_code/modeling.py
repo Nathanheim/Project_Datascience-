@@ -1,10 +1,10 @@
 """
-Module de modèles pour la prédiction du tarif Uber.
+Module for models for Uber fare prediction.
 
-Ce module contient les modèles :
-- PanelOLS (effets fixes)
-- Plusieurs modèles sklearn (arbres, forêts, boosting, etc.)
-- Fonctions d'amélioration de features (cycliques, trafic, interactions, etc.)
+This module contains:
+- PanelOLS (fixed effects)
+- Several sklearn models (trees, forests, boosting, etc.)
+- Feature improvement functions (cyclical, traffic, interactions, etc.)
 """
 
 import numpy as np
@@ -25,8 +25,8 @@ import statsmodels.api as sm
 
 def build_panel_ols(df: pd.DataFrame) -> Dict[str, Any]:
     """
-    Construit et ajuste un modèle PanelOLS (effets fixes).
-    Utilise pickup_day et pickup_hour comme index.
+    Build and fit a PanelOLS model (fixed effects).
+    Uses pickup_day and pickup_hour as index.
     """
     df_panel = df.set_index(["pickup_day", "pickup_hour"])
 
@@ -47,14 +47,14 @@ def build_panel_ols(df: pd.DataFrame) -> Dict[str, Any]:
 
 def train_sklearn_models(X_train_scaled, X_test_scaled, y_train, y_test):
     """
-    Entraîne plusieurs modèles sklearn et retourne
-    un DataFrame avec R2, MAE, RMSE ainsi que les modèles entraînés.
+    Train several sklearn models and return
+    a DataFrame with R2, MAE, RMSE as well as trained models.
     
     Returns
     -------
     tuple: (results_df, trained_models)
-        - results_df: DataFrame avec les résultats (R2, MAE, RMSE)
-        - trained_models: Dictionnaire des modèles entraînés {name: model}
+        - results_df: DataFrame with results (R2, MAE, RMSE)
+        - trained_models: Dictionary of trained models {name: model}
     """
     from config import RANDOM_STATE, N_ESTIMATORS_RF
     
@@ -71,11 +71,11 @@ def train_sklearn_models(X_train_scaled, X_test_scaled, y_train, y_test):
     }
 
     results = []
-    trained_models = {}  # Stocker les modèles entraînés
+    trained_models = {}  # Store trained models
 
     for name, model in models.items():
         model.fit(X_train_scaled, y_train)
-        trained_models[name] = model  # Sauvegarder le modèle entraîné
+        trained_models[name] = model  # Save trained model
         y_pred = model.predict(X_test_scaled)
 
         r2 = r2_score(y_test, y_pred)
@@ -91,26 +91,26 @@ def train_sklearn_models(X_train_scaled, X_test_scaled, y_train, y_test):
 
 
 # ============================================================================
-# Fonctions d'amélioration de features
+# Feature improvement functions
 # ============================================================================
 
 
 def add_cyclical_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Ajoute des features cycliques pour les variables temporelles.
-    Améliore la modélisation des patterns temporels (ex: minuit proche de 23h).
+    Add cyclical features for temporal variables.
+    Improves modeling of temporal patterns (e.g., midnight close to 23h).
     """
     df = df.copy()
     
-    # Heure cyclique (24h)
+    # Cyclical hour (24h)
     df['hour_sin'] = np.sin(2 * np.pi * df['pickup_hour'] / 24)
     df['hour_cos'] = np.cos(2 * np.pi * df['pickup_hour'] / 24)
     
-    # Jour de semaine cyclique (7 jours)
+    # Cyclical day of week (7 days)
     df['dayofweek_sin'] = np.sin(2 * np.pi * df['pickup_dayofweek'] / 7)
     df['dayofweek_cos'] = np.cos(2 * np.pi * df['pickup_dayofweek'] / 7)
     
-    # Mois cyclique (12 mois)
+    # Cyclical month (12 months)
     df['month_sin'] = np.sin(2 * np.pi * df['pickup_month'] / 12)
     df['month_cos'] = np.cos(2 * np.pi * df['pickup_month'] / 12)
     
@@ -119,19 +119,19 @@ def add_cyclical_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def add_traffic_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Ajoute des features liées au trafic et aux habitudes.
+    Add features related to traffic and habits.
     """
     df = df.copy()
     
-    # Heures de pointe (rush hours)
+    # Rush hours
     df['is_rush_hour'] = ((df['pickup_hour'] >= 7) & (df['pickup_hour'] <= 9)) | \
                          ((df['pickup_hour'] >= 17) & (df['pickup_hour'] <= 19))
     df['is_rush_hour'] = df['is_rush_hour'].astype(int)
     
-    # Week-end
+    # Weekend
     df['is_weekend'] = (df['pickup_dayofweek'] >= 5).astype(int)
     
-    # Heures de nuit (0-5h)
+    # Night hours (0-5h)
     df['is_night'] = ((df['pickup_hour'] >= 0) & (df['pickup_hour'] <= 5)).astype(int)
     
     return df
@@ -139,18 +139,18 @@ def add_traffic_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def add_geographical_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Ajoute des features géographiques avancées.
-    Nécessite que pickup_longitude et dropoff_longitude soient encore présents.
+    Add advanced geographical features.
+    Requires that pickup_longitude and dropoff_longitude are still present.
     """
     df = df.copy()
     
-    # Distance Manhattan (distance en L, approximative)
-    # Utilise les latitudes/longitudes si disponibles
+    # Manhattan distance (L-shaped distance, approximate)
+    # Uses latitudes/longitudes if available
     if 'pickup_longitude' in df.columns and 'dropoff_longitude' in df.columns:
-        # Approximation de la distance Manhattan
+        # Manhattan distance approximation
         lat_diff = np.abs(df['dropoff_latitude'] - df['pickup_latitude'])
         lon_diff = np.abs(df['dropoff_longitude'] - df['pickup_longitude'])
-        # Conversion approximative en km (1 degré ≈ 111 km)
+        # Approximate conversion to km (1 degree ≈ 111 km)
         df['manhattan_distance'] = (lat_diff * 111) + (lon_diff * 111 * np.cos(np.radians(df['pickup_latitude'])))
     
     return df
@@ -158,14 +158,14 @@ def add_geographical_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def add_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Ajoute des features d'interaction entre variables importantes.
+    Add interaction features between important variables.
     """
     df = df.copy()
     
-    # Distance * Passagers (tarif peut être plus cher avec plus de passagers)
+    # Distance * Passengers (fare may be more expensive with more passengers)
     df['distance_passengers'] = df['Distance'] * df['passenger_count']
     
-    # Distance au carré (relation non-linéaire possible)
+    # Distance squared (possible non-linear relationship)
     df['distance_squared'] = df['Distance'] ** 2
     
     return df
@@ -173,14 +173,14 @@ def add_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def add_time_based_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Ajoute des features basées sur le temps.
+    Add time-based features.
     """
     df = df.copy()
     
-    # Jour du mois (peut affecter les tarifs)
+    # Day of month (may affect fares)
     df['day_of_month'] = df['pickup_day']
     
-    # Saison (si applicable)
+    # Season (if applicable)
     df['season'] = df['pickup_month'].apply(lambda x: (x % 12) // 3 + 1)
     
     return df
@@ -188,23 +188,23 @@ def add_time_based_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def improved_preprocessing_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Pipeline amélioré qui ajoute toutes les nouvelles features.
+    Improved pipeline that adds all new features.
     """
     df = df.copy()
     
-    # Features cycliques
+    # Cyclical features
     df = add_cyclical_features(df)
     
-    # Features de trafic
+    # Traffic features
     df = add_traffic_features(df)
     
-    # Features géographiques (si coordonnées disponibles)
+    # Geographical features (if coordinates available)
     df = add_geographical_features(df)
     
-    # Features d'interaction
+    # Interaction features
     df = add_interaction_features(df)
     
-    # Features temporelles
+    # Temporal features
     df = add_time_based_features(df)
     
     return df
@@ -212,8 +212,8 @@ def improved_preprocessing_pipeline(df: pd.DataFrame) -> pd.DataFrame:
 
 def use_robust_scaler(X_train, X_test):
     """
-    Utilise RobustScaler au lieu de StandardScaler.
-    Plus robuste aux outliers.
+    Use RobustScaler instead of StandardScaler.
+    More robust to outliers.
     """
     scaler = RobustScaler()
     X_train_scaled = scaler.fit_transform(X_train)
@@ -222,6 +222,5 @@ def use_robust_scaler(X_train, X_test):
 
 
 if __name__ == "__main__":
-    print("Ce module définit les modèles et les améliorations de features, il est conçu pour être appelé depuis main.py.")
-
+    print("This module defines models and feature improvements, it is designed to be called from main.py.")
 

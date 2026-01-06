@@ -1,13 +1,13 @@
 """
-Module de chargement et de préparation des données pour la prédiction du tarif Uber.
+Module for loading and preparing data for Uber fare prediction.
 
-Ce module contient :
-- chargement du CSV
-- nettoyage des valeurs manquantes
-- création des variables de date/temps
-- calcul de la distance (formule de Haversine)
-- suppression des outliers
-- préparation des features (X, y) et du split train/test + scaling
+This module contains:
+- CSV loading
+- missing value cleaning
+- date/time variable creation
+- distance calculation (Haversine formula)
+- outlier removal
+- feature preparation (X, y) and train/test split + scaling
 """
 
 import pandas as pd
@@ -17,18 +17,18 @@ from sklearn.preprocessing import StandardScaler
 
 
 def load_raw_data(csv_path: str) -> pd.DataFrame:
-    """Charge le fichier CSV brut."""
+    """Load raw CSV file."""
     df = pd.read_csv(csv_path)
     return df
 
 
 def drop_missing_values(df: pd.DataFrame) -> pd.DataFrame:
-    """Supprime les lignes contenant des valeurs manquantes (dropna)."""
+    """Remove rows containing missing values (dropna)."""
     return df.dropna()
 
 
 def add_datetime_features(df: pd.DataFrame, datetime_col: str = "pickup_datetime") -> pd.DataFrame:
-    """Convertit la colonne datetime et ajoute année, mois, jour, heure, jour de semaine."""
+    """Convert datetime column and add year, month, day, hour, day of week."""
     df = df.copy()
     df[datetime_col] = pd.to_datetime(df[datetime_col], errors="coerce")
 
@@ -42,7 +42,7 @@ def add_datetime_features(df: pd.DataFrame, datetime_col: str = "pickup_datetime
 
 
 def drop_unused_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Supprime les colonnes inutiles."""
+    """Remove unused columns."""
     df = df.copy()
     cols_to_drop = ["Unnamed: 0", "key", "pickup_datetime"]
     existing = [c for c in cols_to_drop if c in df.columns]
@@ -50,7 +50,7 @@ def drop_unused_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def haversine(lon1, lon2, lat1, lat2):
-    """Calcule la distance en km entre deux points (formule de Haversine)."""
+    """Calculate distance in km between two points (Haversine formula)."""
     lon1, lon2, lat1, lat2 = map(np.radians, [lon1, lon2, lat1, lat2])
     dlon = lon2 - lon1
     dlat = lat2 - lat1
@@ -61,7 +61,7 @@ def haversine(lon1, lon2, lat1, lat2):
 
 
 def add_distance_feature(df: pd.DataFrame) -> pd.DataFrame:
-    """Ajoute la colonne Distance."""
+    """Add Distance column."""
     df = df.copy()
     df["Distance"] = haversine(
         df["pickup_longitude"],
@@ -74,7 +74,7 @@ def add_distance_feature(df: pd.DataFrame) -> pd.DataFrame:
 
 def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Applique les règles de filtrage des outliers :
+    Apply outlier filtering rules:
     - Distance <= 60
     - fare_amount < 100
     - 0 < passenger_count < 10
@@ -86,7 +86,7 @@ def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def drop_location_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Supprime certaines colonnes de localisation."""
+    """Remove some location columns."""
     df = df.copy()
     cols_to_drop = ["pickup_longitude", "dropoff_longitude"]
     existing = [c for c in cols_to_drop if c in df.columns]
@@ -94,7 +94,7 @@ def drop_location_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def prepare_features_target(df: pd.DataFrame, target_col: str = "fare_amount"):
-    """Sépare les features (X) et la cible (y)."""
+    """Separate features (X) and target (y)."""
     X = df.drop(columns=[target_col])
     y = df[target_col]
     return X, y
@@ -107,7 +107,7 @@ def train_test_scale(
     random_state: int = 42,
 ):
     """
-    Effectue le train_test_split puis applique un StandardScaler.
+    Perform train_test_split then apply StandardScaler.
     """
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
@@ -122,14 +122,14 @@ def train_test_scale(
 
 def full_preprocessing_pipeline(csv_path: str):
     """
-    Pipeline complet de prétraitement qui
-    retourne les objets prêts pour l'entraînement.
-    Inclut les features avancées (cycliques, trafic, interactions).
+    Complete preprocessing pipeline that
+    returns objects ready for training.
+    Includes advanced features (cyclical, traffic, interactions).
     """
-    # Import depuis le même répertoire (Source_code/)
+    # Import from same directory (Source_code/)
     import sys
     from pathlib import Path
-    # Ajouter le répertoire Source_code au path si nécessaire
+    # Add Source_code directory to path if necessary
     source_code_dir = Path(__file__).parent
     if str(source_code_dir) not in sys.path:
         sys.path.insert(0, str(source_code_dir))
@@ -142,32 +142,32 @@ def full_preprocessing_pipeline(csv_path: str):
         add_time_based_features,
     )
     
-    # Chargement
+    # Loading
     df_raw = load_raw_data(csv_path)
 
-    # Nettoyage valeurs manquantes
+    # Missing value cleaning
     df = drop_missing_values(df_raw)
 
-    # Features temporelles de base
+    # Basic temporal features
     df = add_datetime_features(df, datetime_col="pickup_datetime")
 
-    # Suppression colonnes inutiles
+    # Remove unused columns
     df = drop_unused_columns(df)
 
-    # Distance (nécessaire avant les autres features)
+    # Distance (needed before other features)
     df = add_distance_feature(df)
 
-    # Outliers (avant d'ajouter les features avancées pour éviter de calculer sur des données aberrantes)
+    # Outliers (before adding advanced features to avoid calculating on aberrant data)
     df = remove_outliers(df)
 
-    # Features avancées (avant de supprimer les coordonnées pour les features géographiques)
+    # Advanced features (before removing coordinates for geographical features)
     df = add_cyclical_features(df)
     df = add_traffic_features(df)
-    df = add_geographical_features(df)  # Nécessite les coordonnées
+    df = add_geographical_features(df)  # Requires coordinates
     df = add_interaction_features(df)
     df = add_time_based_features(df)
 
-    # Colonnes de localisation (après avoir utilisé les coordonnées pour les features géographiques)
+    # Location columns (after using coordinates for geographical features)
     df = drop_location_columns(df)
 
     # Features / Target
@@ -193,9 +193,8 @@ def full_preprocessing_pipeline(csv_path: str):
 
 
 if __name__ == "__main__":
-    # Petit test manuel du pipeline
+    # Small manual pipeline test
     csv_example = "../dataset/uber.csv"
     data = full_preprocessing_pipeline(csv_example)
-    print("Shape des données nettoyées :", data["df_clean"].shape)
-
+    print("Clean data shape:", data["df_clean"].shape)
 

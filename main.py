@@ -1,12 +1,12 @@
 """
-Script principal pour la prédiction du tarif Uber.
+Main script for Uber fare prediction.
 
-Ce fichier orchestre :
-- le chargement et le prétraitement des données
-- l'entraînement des modèles sklearn
-- (optionnel) le modèle PanelOLS
-- la visualisation de base
-- le tuning + sauvegarde du meilleur RandomForest
+This file orchestrates:
+- data loading and preprocessing
+- sklearn model training
+- (optional) PanelOLS model
+- basic visualization
+- tuning + saving the best RandomForest
 """
 
 from pathlib import Path
@@ -36,23 +36,23 @@ from Source_code.tuning_and_saving import tune_random_forest, evaluate_model, sa
 
 
 def main():
-    """Fonction principale avec gestion d'erreurs complète."""
+    """Main function with complete error handling."""
     try:
-        # 1. Chemin vers le CSV (depuis config)
+        # 1. Path to CSV (from config)
         csv_path = DATASET_PATH
         
         if not csv_path.exists():
-            print(f"ERREUR : Le fichier {csv_path} n'existe pas.")
-            print("   Vérifiez que le fichier dataset/uber.csv existe.")
+            print(f"ERROR: File {csv_path} does not exist.")
+            print("   Please ensure the dataset/uber.csv file exists.")
             sys.exit(1)
 
-        # 2. Prétraitement complet
-        print("Début du prétraitement des données...")
+        # 2. Complete preprocessing
+        print("Starting data preprocessing...")
         try:
             data = full_preprocessing_pipeline(str(csv_path))
         except Exception as e:
-            print(f"ERREUR lors du prétraitement : {str(e)}")
-            print("   Vérifiez que le fichier CSV est valide et contient les bonnes colonnes.")
+            print(f"ERROR during preprocessing: {str(e)}")
+            print("   Please verify that the CSV file is valid and contains the correct columns.")
             sys.exit(1)
         
         df_clean = data["df_clean"]
@@ -66,66 +66,66 @@ def main():
         X_test_scaled = data["X_test_scaled"]
         scaler = data["scaler"]
 
-        print("Prétraitement terminé. Shape données nettoyées :", df_clean.shape)
+        print("Preprocessing completed. Clean data shape:", df_clean.shape)
         
         if df_clean.shape[0] == 0:
-            print("ERREUR : Aucune donnée après le prétraitement.")
+            print("ERROR: No data after preprocessing.")
             sys.exit(1)
 
-        # 3. (Optionnel) Modèle PanelOLS
+        # 3. (Optional) PanelOLS model
         if ENABLE_PANEL_OLS:
             panel_results = build_panel_ols(df_clean)
             print(panel_results["results"].summary)
 
-        # 4. Modèles sklearn
-        print("\nEntraînement des modèles sklearn...")
+        # 4. sklearn models
+        print("\nTraining sklearn models...")
         try:
             results_df, trained_models = train_sklearn_models(X_train_scaled, X_test_scaled, y_train, y_test)
-            print("\n=== Résultats des modèles sklearn ===")
+            print("\n=== sklearn Model Results ===")
             print(results_df)
         except Exception as e:
-            print(f"ERREUR lors de l'entraînement des modèles : {str(e)}")
+            print(f"ERROR during model training: {str(e)}")
             import traceback
             traceback.print_exc()
             sys.exit(1)
 
-        # 5. Visualisations de base (si activées)
+        # 5. Basic visualizations (if enabled)
         if ENABLE_VISUALIZATIONS:
             plot_correlation_heatmap(df_clean)
             plot_distance_vs_fare(df_clean)
             plot_model_performance_bar(results_df)
 
-        # 6. Sélection du meilleur modèle sklearn (par R2)
+        # 6. Select best sklearn model (by R2)
         if results_df.empty:
-            print("ERREUR : Aucun résultat de modèle disponible.")
+            print("ERROR: No model results available.")
             sys.exit(1)
             
         best_model_name = results_df.iloc[0]["Model"]
-        print(f"\nMeilleur modèle sklearn (d'après R2) : {best_model_name}")
+        print(f"\nBest sklearn model (by R2): {best_model_name}")
 
-        # Récupérer le meilleur modèle déjà entraîné (plus de duplication !)
+        # Get the already trained best model (no duplication!)
         best_model = trained_models.get(best_model_name)
         if best_model is None:
-            print(f"ERREUR : Modèle '{best_model_name}' non trouvé dans les modèles entraînés.")
+            print(f"ERROR: Model '{best_model_name}' not found in trained models.")
             sys.exit(1)
         
-        # Utiliser le modèle déjà entraîné pour les visualisations (si activées)
+        # Use the already trained model for visualizations (if enabled)
         if ENABLE_VISUALIZATIONS:
             plot_residuals_best_model(best_model, X_test_scaled, y_test, best_model_name)
             feat_imp = plot_feature_importances(X_train_scaled, y_train, X.columns)
-            print("\nTop features par importance :")
+            print("\nTop features by importance:")
             print(feat_imp.head())
 
-        # 7. Tuning + sauvegarde du meilleur RandomForest (sur X_train non-scalé)
-        print("\nTuning du RandomForest (cela peut prendre 15-20 minutes)...")
+        # 7. Tuning + saving the best RandomForest (on unscaled X_train)
+        print("\nTuning RandomForest (this may take 15-20 minutes)...")
         try:
             best_rf = tune_random_forest(X_train, y_train)
         except KeyboardInterrupt:
-            print("\nAVERTISSEMENT : Tuning interrompu par l'utilisateur (Ctrl+C).")
-            print("   Le modèle n'a pas été sauvegardé.")
+            print("\nWARNING: Tuning interrupted by user (Ctrl+C).")
+            print("   The model was not saved.")
             sys.exit(1)
         except Exception as e:
-            print(f"ERREUR lors du tuning : {str(e)}")
+            print(f"ERROR during tuning: {str(e)}")
             import traceback
             traceback.print_exc()
             sys.exit(1)
@@ -133,34 +133,34 @@ def main():
         try:
             metrics = evaluate_model(best_rf, X_test, y_test)
         except Exception as e:
-            print(f"ERREUR lors de l'évaluation : {str(e)}")
+            print(f"ERROR during evaluation: {str(e)}")
             sys.exit(1)
 
-        # 8. Sauvegarde du modèle (chemins depuis config)
+        # 8. Save model (paths from config)
         try:
             save_model(best_rf, path=str(MODEL_PATH))
-            print(f"\nModèle RandomForest sauvegardé dans {MODEL_PATH}")
+            print(f"\nRandomForest model saved in {MODEL_PATH}")
         except Exception as e:
-            print(f"ERREUR lors de la sauvegarde du modèle : {str(e)}")
-            print("   Le modèle a été entraîné mais n'a pas pu être sauvegardé.")
+            print(f"ERROR during model saving: {str(e)}")
+            print("   The model was trained but could not be saved.")
             sys.exit(1)
 
-        # Sauvegarde du scaler pour référence (non utilisé par RandomForest)
+        # Save scaler for reference (not used by RandomForest)
         try:
             joblib.dump(scaler, SCALER_PATH)
-            print(f"Scaler sauvegardé dans {SCALER_PATH}")
+            print(f"Scaler saved in {SCALER_PATH}")
         except Exception as e:
-            print(f"AVERTISSEMENT : Impossible de sauvegarder le scaler : {str(e)}")
-            # Non bloquant, on continue
+            print(f"WARNING: Unable to save scaler: {str(e)}")
+            # Non-blocking, continue
 
-        print("\nPipeline terminé avec succès !")
+        print("\nPipeline completed successfully!")
         
     except KeyboardInterrupt:
-        print("\n\nAVERTISSEMENT : Script interrompu par l'utilisateur (Ctrl+C).")
-        print("   Les données partiellement traitées n'ont pas été sauvegardées.")
+        print("\n\nWARNING: Script interrupted by user (Ctrl+C).")
+        print("   Partially processed data was not saved.")
         sys.exit(1)
     except Exception as e:
-        print(f"\nERREUR inattendue : {str(e)}")
+        print(f"\nUnexpected error: {str(e)}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
@@ -168,4 +168,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

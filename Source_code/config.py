@@ -1,14 +1,14 @@
 """
-Configuration centralisée pour le projet Uber Fare Prediction.
+Centralized configuration for Uber Fare Prediction project.
 
-Toutes les valeurs de configuration sont centralisées ici pour faciliter
-la maintenance et éviter la duplication de code.
+All configuration values are centralized here to facilitate
+maintenance and avoid code duplication.
 """
 
 from pathlib import Path
 
 # ============================================================================
-# Chemins de fichiers
+# File paths
 # ============================================================================
 BASE_DIR = Path(__file__).parent.parent
 DATASET_PATH = BASE_DIR / "dataset" / "uber.csv"
@@ -16,35 +16,35 @@ MODEL_PATH = Path(__file__).parent / "uber_random_forest_model.pkl"
 SCALER_PATH = Path(__file__).parent / "scaler.pkl"
 
 # ============================================================================
-# Paramètres de randomisation
+# Randomization parameters
 # ============================================================================
-RANDOM_STATE = 42  # Pour reproductibilité
+RANDOM_STATE = 42  # For reproducibility
 
 # ============================================================================
-# Paramètres de preprocessing
+# Preprocessing parameters
 # ============================================================================
-TEST_SIZE = 0.2  # 20% pour le test set, 80% pour le train
-MAX_DISTANCE = 60  # Distance maximale en km (outlier threshold)
-MAX_FARE = 100  # Tarif maximal en $ (outlier threshold)
+TEST_SIZE = 0.2  # 20% for test set, 80% for train
+MAX_DISTANCE = 60  # Maximum distance in km (outlier threshold)
+MAX_FARE = 100  # Maximum fare in $ (outlier threshold)
 MIN_PASSENGERS = 1
 MAX_PASSENGERS = 9
 
 # ============================================================================
-# Paramètres de tuning
+# Tuning parameters
 # ============================================================================
-N_ITER_RANDOM_SEARCH = 10  # Nombre d'itérations pour RandomizedSearchCV
-N_SPLITS_CV = 3  # Nombre de folds pour validation croisée
-N_JOBS = 2  # Nombre de jobs parallèles (réduit pour Mac)
+N_ITER_RANDOM_SEARCH = 10  # Number of iterations for RandomizedSearchCV
+N_SPLITS_CV = 3  # Number of folds for cross-validation
+N_JOBS = 2  # Number of parallel jobs (reduced for Mac)
 
 # ============================================================================
-# Paramètres des modèles
+# Model parameters
 # ============================================================================
-N_ESTIMATORS_RF = 100  # Nombre d'arbres pour Random Forest initial
+N_ESTIMATORS_RF = 100  # Number of trees for initial Random Forest
 
 # ============================================================================
 # Options (flags)
 # ============================================================================
-ENABLE_VISUALIZATIONS = False  # Activer/désactiver les visualisations
-ENABLE_PANEL_OLS = False  # Activer/désactiver PanelOLS
-VERBOSE = 1  # Niveau de verbosité
+ENABLE_VISUALIZATIONS = False  # Enable/disable visualizations
+ENABLE_PANEL_OLS = False  # Enable/disable PanelOLS
+VERBOSE = 1  # Verbosity level
 

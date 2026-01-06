@@ -1,10 +1,10 @@
 """
-Application Streamlit pour la prédiction du tarif Uber.
+Streamlit application for Uber fare prediction.
 
-Cette application web permet de :
-- Saisir les coordonnées GPS ou la distance directement
-- Calculer automatiquement la distance si les coordonnées sont fournies
-- Faire des prédictions avec une interface moderne et interactive
+This web application allows:
+- Enter GPS coordinates or distance directly
+- Automatically calculate distance if coordinates are provided
+- Make predictions with a modern and interactive interface
 """
 
 import streamlit as st
@@ -16,7 +16,7 @@ from datetime import datetime, date
 import plotly.express as px
 import plotly.graph_objects as go
 
-# Import de la fonction haversine depuis le module de preprocessing
+# Import haversine function from preprocessing module
 from data_preprocessing import haversine
 
 # Configuration de la page
@@ -63,30 +63,30 @@ st.markdown("""
 
 @st.cache_resource
 def load_model():
-    """Charge le modèle RandomForest depuis le fichier sauvegardé."""
-    # Nouveau nom de fichier pour éviter toute confusion avec un ancien scaler
+    """Load RandomForest model from saved file."""
+    # New filename to avoid confusion with old scaler
     model_path = Path(__file__).parent / "uber_random_forest_model.pkl"
     
     if not model_path.exists():
-        st.error(f"ERREUR : Le fichier {model_path} n'existe pas.\n\n"
-                "Veuillez d'abord exécuter `python main.py` pour entraîner et sauvegarder le modèle.")
+        st.error(f"ERROR: File {model_path} does not exist.\n\n"
+                "Please first run `python main.py` to train and save the model.")
         return None
     
     try:
         model = joblib.load(model_path)
-        # Sécurité : vérifier que l'objet chargé a bien une méthode predict
+        # Security: verify that loaded object has a predict method
         if not hasattr(model, "predict"):
-            st.error("ERREUR : Le fichier de modèle chargé ne contient pas un modèle valide (pas de méthode 'predict').")
+            st.error("ERROR: Loaded model file does not contain a valid model (no 'predict' method).")
             return None
-        st.success("Modèle chargé avec succès!")
+        st.success("Model loaded successfully!")
         return model
     except Exception as e:
-        st.error(f"ERREUR : Erreur lors du chargement du modèle : {str(e)}")
+        st.error(f"ERROR: Error loading model: {str(e)}")
         return None
 
 
 def calculate_distance_from_coords(pickup_lat, pickup_lon, dropoff_lat, dropoff_lon):
-    """Calcule la distance à partir des coordonnées GPS."""
+    """Calculate distance from GPS coordinates."""
     try:
         distance = haversine(pickup_lon, dropoff_lon, pickup_lat, dropoff_lat)
         return round(distance, 2)
@@ -96,10 +96,10 @@ def calculate_distance_from_coords(pickup_lat, pickup_lon, dropoff_lat, dropoff_
 
 def validate_inputs(input_mode, pickup_lat, pickup_lon, dropoff_lat, dropoff_lon, 
                    distance_direct, passenger_count, year, month, day, hour):
-    """Valide tous les champs de saisie."""
+    """Validate all input fields."""
     errors = []
     
-    # Validation selon le mode
+    # Validation based on mode
     if input_mode == "coordinates":
         try:
             pickup_lat_val = float(pickup_lat)
@@ -108,39 +108,39 @@ def validate_inputs(input_mode, pickup_lat, pickup_lon, dropoff_lat, dropoff_lon
             dropoff_lon_val = float(dropoff_lon)
             
             if not (-90 <= pickup_lat_val <= 90) or not (-90 <= dropoff_lat_val <= 90):
-                errors.append("ERREUR : Les latitudes doivent être entre -90 et 90")
+                errors.append("ERROR: Latitudes must be between -90 and 90")
             if not (-180 <= pickup_lon_val <= 180) or not (-180 <= dropoff_lon_val <= 180):
-                errors.append("ERREUR : Les longitudes doivent être entre -180 et 180")
+                errors.append("ERROR: Longitudes must be between -180 and 180")
             
             distance = calculate_distance_from_coords(
                 pickup_lat_val, pickup_lon_val, dropoff_lat_val, dropoff_lon_val
             )
             if distance is None or distance <= 0:
-                errors.append("ERREUR : Distance invalide calculée à partir des coordonnées")
+                errors.append("ERROR: Invalid distance calculated from coordinates")
             elif distance > 60:
-                errors.append(f"ERREUR : Distance trop grande ({distance:.2f} km). Maximum: 60 km")
+                errors.append(f"ERROR: Distance too large ({distance:.2f} km). Maximum: 60 km")
                 
         except ValueError:
-            errors.append("ERREUR : Coordonnées GPS invalides (doivent être des nombres)")
+            errors.append("ERROR: Invalid GPS coordinates (must be numbers)")
     else:
         try:
             distance_val = float(distance_direct)
             if distance_val <= 0:
-                errors.append("ERREUR : La distance doit être positive")
+                errors.append("ERROR: Distance must be positive")
             elif distance_val > 60:
-                errors.append(f"ERREUR : Distance trop grande ({distance_val:.2f} km). Maximum: 60 km")
+                errors.append(f"ERROR: Distance too large ({distance_val:.2f} km). Maximum: 60 km")
         except ValueError:
-            errors.append("ERREUR : Distance invalide (doit être un nombre)")
+            errors.append("ERROR: Invalid distance (must be a number)")
     
-    # Validation du nombre de passagers
+    # Passenger count validation
     try:
         passenger_count_val = int(passenger_count)
         if passenger_count_val < 1 or passenger_count_val >= 10:
-            errors.append("ERREUR : Le nombre de passagers doit être entre 1 et 9")
+            errors.append("ERROR: Number of passengers must be between 1 and 9")
     except ValueError:
-        errors.append("ERREUR : Nombre de passagers invalide")
+        errors.append("ERROR: Invalid passenger count")
     
-    # Validation de la date/heure
+    # Date/time validation
     try:
         year_val = int(year)
         month_val = int(month)
@@ -148,30 +148,30 @@ def validate_inputs(input_mode, pickup_lat, pickup_lon, dropoff_lat, dropoff_lon
         hour_val = int(hour)
         
         if not (2000 <= year_val <= 2030):
-            errors.append("ERREUR : L'année doit être entre 2000 et 2030")
+            errors.append("ERROR: Year must be between 2000 and 2030")
         if not (1 <= month_val <= 12):
-            errors.append("ERREUR : Le mois doit être entre 1 et 12")
+            errors.append("ERROR: Month must be between 1 and 12")
         if not (1 <= day_val <= 31):
-            errors.append("ERREUR : Le jour doit être entre 1 et 31")
+            errors.append("ERROR: Day must be between 1 and 31")
         if not (0 <= hour_val <= 23):
-            errors.append("ERREUR : L'heure doit être entre 0 et 23")
+            errors.append("ERROR: Hour must be between 0 and 23")
         
-        # Calculer le jour de la semaine
+        # Calculate day of week
         try:
             date_obj = datetime(year_val, month_val, day_val)
-            dayofweek = date_obj.weekday()  # 0 = lundi, 6 = dimanche
+            dayofweek = date_obj.weekday()  # 0 = Monday, 6 = Sunday
         except ValueError:
-            errors.append("ERREUR : Date invalide")
+            errors.append("ERROR: Invalid date")
             
     except ValueError:
-        errors.append("ERREUR : Date/heure invalides (doivent être des nombres entiers)")
+        errors.append("ERROR: Invalid date/time (must be integers)")
     
     return errors, dayofweek if "dayofweek" in locals() else None
 
 
 def make_prediction(model, input_mode, pickup_lat, pickup_lon, dropoff_lat, dropoff_lon,
                    distance_direct, passenger_count, year, month, day, hour, dayofweek):
-    """Effectue la prédiction du tarif avec toutes les features avancées."""
+    """Perform fare prediction with all advanced features."""
     try:
         import numpy as np
         from modeling import (
@@ -182,7 +182,7 @@ def make_prediction(model, input_mode, pickup_lat, pickup_lon, dropoff_lat, drop
             add_time_based_features,
         )
         
-        # Récupération de la distance
+        # Get distance
         if input_mode == "coordinates":
             distance = calculate_distance_from_coords(
                 float(pickup_lat), float(pickup_lon),
@@ -194,12 +194,12 @@ def make_prediction(model, input_mode, pickup_lat, pickup_lon, dropoff_lat, drop
             dropoff_lon_val = float(dropoff_lon)
         else:
             distance = float(distance_direct)
-            pickup_lat_val = 40.7128  # Latitude par défaut (NYC)
-            pickup_lon_val = -74.0060  # Longitude par défaut (NYC)
+            pickup_lat_val = 40.7128  # Default latitude (NYC)
+            pickup_lon_val = -74.0060  # Default longitude (NYC)
             dropoff_lat_val = 40.7128
             dropoff_lon_val = -74.0060
         
-        # Création du DataFrame d'entrée avec les features de base
+        # Create input DataFrame with basic features
         input_data = pd.DataFrame({
             "pickup_latitude": [pickup_lat_val],
             "pickup_longitude": [pickup_lon_val],
@@ -214,91 +214,91 @@ def make_prediction(model, input_mode, pickup_lat, pickup_lon, dropoff_lat, drop
             "Distance": [distance],
         })
         
-        # Ajout des features avancées (dans le même ordre que le pipeline)
+        # Add advanced features (in same order as pipeline)
         input_data = add_cyclical_features(input_data)
         input_data = add_traffic_features(input_data)
         input_data = add_geographical_features(input_data)
         input_data = add_interaction_features(input_data)
         input_data = add_time_based_features(input_data)
         
-        # Supprimer les colonnes de localisation (comme dans le pipeline)
+        # Remove location columns (as in pipeline)
         cols_to_drop = ["pickup_longitude", "dropoff_longitude"]
         existing = [c for c in cols_to_drop if c in input_data.columns]
         input_data = input_data.drop(columns=existing)
         
-        # Prédiction (RandomForest n'utilise pas de scaler)
+        # Prediction (RandomForest does not use scaler)
         fare_prediction = model.predict(input_data)[0]
         
         return fare_prediction, distance
         
     except Exception as e:
-        st.error(f"ERREUR : Erreur lors de la prédiction : {str(e)}")
+        st.error(f"ERROR: Error during prediction: {str(e)}")
         import traceback
-        st.error(f"Détails : {traceback.format_exc()}")
+        st.error(f"Details: {traceback.format_exc()}")
         return None, None
 
 
 def main():
-    """Fonction principale de l'application Streamlit."""
+    """Main function of Streamlit application."""
     
-    # En-tête
-    st.markdown('<h1 class="main-header">🚗 Prédiction du Tarif Uber</h1>', unsafe_allow_html=True)
+    # Header
+    st.markdown('<h1 class="main-header">🚗 Uber Fare Prediction</h1>', unsafe_allow_html=True)
     st.markdown("---")
     
-    # Chargement du modèle
+    # Load model
     model = load_model()
     
     if model is None:
         st.stop()
     
-    # Sidebar avec informations
+    # Sidebar with information
     with st.sidebar:
-        st.header("ℹ️ Informations")
+        st.header("ℹ️ Information")
         st.markdown("""
-        ### Comment utiliser cette application :
+        ### How to use this application:
         
-        1. **Choisissez le mode de saisie** :
-           - Coordonnées GPS : entrez les coordonnées de départ et d'arrivée
-           - Distance directe : entrez directement la distance en km
+        1. **Choose input mode**:
+           - GPS Coordinates: enter departure and arrival coordinates
+           - Direct Distance: enter distance directly in km
         
-        2. **Remplissez les informations** du trajet
+        2. **Fill in trip information**
         
-        3. **Cliquez sur "Prédire le Tarif"** pour obtenir l'estimation
+        3. **Click "Predict Fare"** to get the estimate
         
-        ### Notes :
-        - La distance maximale est de 60 km
-        - Le nombre de passagers doit être entre 1 et 9
-        - Les coordonnées GPS sont calculées automatiquement si fournies
+        ### Notes:
+        - Maximum distance is 60 km
+        - Number of passengers must be between 1 and 9
+        - GPS coordinates are automatically calculated if provided
         """)
         
         st.markdown("---")
-        st.markdown("### 📊 Modèle utilisé")
-        st.info("Random Forest Regressor\n\nEntraîné sur un dataset de 200 000 trajets Uber")
+        st.markdown("### 📊 Model used")
+        st.info("Random Forest Regressor\n\nTrained on a dataset of 200,000 Uber trips")
     
-    # Contenu principal
+    # Main content
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.header("📝 Saisie des données")
+        st.header("📝 Data Input")
         
-        # Mode de saisie
+        # Input mode
         input_mode = st.radio(
-            "**Mode de saisie :**",
+            "**Input Mode:**",
             ["coordinates", "distance"],
-            format_func=lambda x: "📍 Coordonnées GPS" if x == "coordinates" else "📏 Distance directe",
-            help="Choisissez comment vous voulez saisir la distance"
+            format_func=lambda x: "📍 GPS Coordinates" if x == "coordinates" else "📏 Direct Distance",
+            help="Choose how you want to enter the distance"
         )
         
         st.markdown("---")
         
-        # Coordonnées GPS
+        # GPS Coordinates
         if input_mode == "coordinates":
-            st.subheader("📍 Coordonnées GPS")
+            st.subheader("📍 GPS Coordinates")
             
             col_pickup, col_dropoff = st.columns(2)
             
             with col_pickup:
-                st.markdown("**Point de départ (Pickup)**")
+                st.markdown("**Pickup Point**")
                 pickup_lat = st.number_input(
                     "Latitude",
                     min_value=-90.0,
@@ -319,7 +319,7 @@ def main():
                 )
             
             with col_dropoff:
-                st.markdown("**Point d'arrivée (Dropoff)**")
+                st.markdown("**Dropoff Point**")
                 dropoff_lat = st.number_input(
                     "Latitude",
                     min_value=-90.0,
@@ -339,19 +339,19 @@ def main():
                     key="dropoff_lon"
                 )
             
-            # Calcul automatique de la distance
+            # Automatic distance calculation
             if all([pickup_lat, pickup_lon, dropoff_lat, dropoff_lon]):
                 calculated_distance = calculate_distance_from_coords(
                     pickup_lat, pickup_lon, dropoff_lat, dropoff_lon
                 )
                 if calculated_distance:
-                    st.success(f"📏 Distance calculée : **{calculated_distance:.2f} km**")
+                    st.success(f"📏 Calculated distance: **{calculated_distance:.2f} km**")
                 else:
-                    st.warning("AVERTISSEMENT : Impossible de calculer la distance")
+                    st.warning("WARNING: Unable to calculate distance")
             
             distance_direct = None
         
-        # Distance directe
+        # Direct distance
         else:
             st.subheader("📏 Distance")
             distance_direct = st.number_input(
@@ -361,35 +361,35 @@ def main():
                 value=5.0,
                 step=0.1,
                 format="%.2f",
-                help="Distance maximale : 60 km"
+                help="Maximum distance: 60 km"
             )
             pickup_lat = pickup_lon = dropoff_lat = dropoff_lon = None
         
         st.markdown("---")
         
-        # Informations du trajet
-        st.subheader("🚕 Informations du trajet")
+        # Trip information
+        st.subheader("🚕 Trip Information")
         
         col_passenger, col_date = st.columns(2)
         
         with col_passenger:
             passenger_count = st.number_input(
-                "👥 Nombre de passagers",
+                "👥 Number of passengers",
                 min_value=1,
                 max_value=9,
                 value=1,
                 step=1,
-                help="Entre 1 et 9 passagers"
+                help="Between 1 and 9 passengers"
             )
         
         with col_date:
-            # Date et heure
+            # Date and time
             now = datetime.now()
             col_year, col_month, col_day, col_hour = st.columns(4)
             
             with col_year:
                 year = st.number_input(
-                    "Année",
+                    "Year",
                     min_value=2000,
                     max_value=2030,
                     value=now.year,
@@ -399,7 +399,7 @@ def main():
             
             with col_month:
                 month = st.number_input(
-                    "Mois",
+                    "Month",
                     min_value=1,
                     max_value=12,
                     value=now.month,
@@ -409,7 +409,7 @@ def main():
             
             with col_day:
                 day = st.number_input(
-                    "Jour",
+                    "Day",
                     min_value=1,
                     max_value=31,
                     value=now.day,
@@ -419,7 +419,7 @@ def main():
             
             with col_hour:
                 hour = st.number_input(
-                    "Heure",
+                    "Hour",
                     min_value=0,
                     max_value=23,
                     value=now.hour,
@@ -427,17 +427,17 @@ def main():
                     key="hour"
                 )
         
-        # Bouton de prédiction
+        # Prediction button
         st.markdown("---")
         predict_button = st.button(
-            "🔮 Prédire le Tarif",
+            "🔮 Predict Fare",
             type="primary",
             use_container_width=True,
-            help="Cliquez pour obtenir la prédiction du tarif"
+            help="Click to get fare prediction"
         )
     
     with col2:
-        st.header("📊 Résultats")
+        st.header("📊 Results")
         
         if predict_button:
             # Validation
@@ -450,44 +450,44 @@ def main():
                 for error in errors:
                     st.error(error)
             else:
-                # Prédiction
+                # Prediction
                 fare_prediction, distance_used = make_prediction(
                     model, input_mode, pickup_lat, pickup_lon, dropoff_lat, dropoff_lon,
                     distance_direct, passenger_count, year, month, day, hour, dayofweek
                 )
                 
                 if fare_prediction:
-                    # Affichage du résultat
+                    # Display result
                     st.markdown(f"""
                     <div class="prediction-box">
-                        <h2>💰 Tarif Prédit</h2>
+                        <h2>💰 Predicted Fare</h2>
                         <div class="prediction-value">${fare_prediction:.2f}</div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Informations supplémentaires
-                    st.markdown("### 📋 Détails de la prédiction")
+                    # Additional information
+                    st.markdown("### 📋 Prediction Details")
                     
                     info_data = {
                         "Distance": [f"{distance_used:.2f} km"],
-                        "Passagers": [f"{passenger_count}"],
+                        "Passengers": [f"{passenger_count}"],
                         "Date": [f"{int(day)}/{int(month)}/{int(year)}"],
-                        "Heure": [f"{int(hour)}h"],
+                        "Hour": [f"{int(hour)}h"],
                     }
                     info_df = pd.DataFrame(info_data)
                     st.dataframe(info_df, use_container_width=True, hide_index=True)
                     
-                    # Graphique de visualisation (optionnel)
-                    st.markdown("### 📈 Visualisation")
+                    # Visualization chart (optional)
+                    st.markdown("### 📈 Visualization")
                     
-                    # Créer un graphique simple avec Plotly
+                    # Create simple chart with Plotly
                     fig = go.Figure()
                     
                     fig.add_trace(go.Indicator(
                         mode = "gauge+number",
                         value = fare_prediction,
                         domain = {'x': [0, 1], 'y': [0, 1]},
-                        title = {'text': "Tarif Prédit ($)"},
+                        title = {'text': "Predicted Fare ($)"},
                         gauge = {
                             'axis': {'range': [None, 100]},
                             'bar': {'color': "darkblue"},
@@ -506,27 +506,27 @@ def main():
                     fig.update_layout(height=300)
                     st.plotly_chart(fig, use_container_width=True)
                     
-                    # Message informatif
-                    st.info("💡 Cette prédiction est basée sur un modèle de machine learning entraîné sur des données historiques Uber.")
+                    # Informative message
+                    st.info("💡 This prediction is based on a machine learning model trained on historical Uber data.")
         else:
-            st.info("👆 Remplissez les informations à gauche et cliquez sur 'Prédire le Tarif' pour obtenir une estimation.")
+            st.info("👆 Fill in the information on the left and click 'Predict Fare' to get an estimate.")
             
-            # Afficher un exemple
-            st.markdown("### 💡 Exemple")
+            # Display example
+            st.markdown("### 💡 Example")
             st.markdown("""
-            **Coordonnées GPS (New York) :**
-            - Départ : 40.7128, -74.0060 (Times Square)
-            - Arrivée : 40.7589, -73.9851 (Central Park)
-            - Distance : ~5.5 km
-            - Passagers : 1
+            **GPS Coordinates (New York):**
+            - Departure: 40.7128, -74.0060 (Times Square)
+            - Arrival: 40.7589, -73.9851 (Central Park)
+            - Distance: ~5.5 km
+            - Passengers: 1
             """)
     
     # Footer
     st.markdown("---")
     st.markdown(
         "<div style='text-align: center; color: #666; padding: 1rem;'>"
-        "🚗 Application de Prédiction du Tarif Uber | "
-        "Basée sur un modèle Random Forest Regressor"
+        "🚗 Uber Fare Prediction Application | "
+        "Based on a Random Forest Regressor model"
         "</div>",
         unsafe_allow_html=True
     )
